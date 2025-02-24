@@ -1,111 +1,68 @@
-// MapScreen.js
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import Geocoder from 'react-native-geocoding';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator, Text } from 'react-native';
+import * as Location from 'expo-location';
+import MapViewComponent from '../components/MapViewComponent'; // Pfad ggf. anpassen
 
-// Ersetze 'YOUR_GOOGLE_MAPS_API_KEY' mit deinem tatsächlichen API-Schlüssel
-Geocoder.init('YOUR_GOOGLE_MAPS_API_KEY');
-
-const MapScreen = ({ route, navigation }) => {
-  const [region, setRegion] = useState(null);
+const MapScreen = ({ route }) => {
+  const [locationCoords, setLocationCoords] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-  // Das übergebene Location-Objekt (z. B. Berlin) oder undefined
-  const location = route.params?.location;
-
-  // Prüfe den Login-Status
   useEffect(() => {
-    AsyncStorage.getItem('userToken').then(token => {
-      setIsLoggedIn(!!token);
-    });
-  }, []);
+    const getCoordinates = async () => {
+      if (route.params && route.params.location) {
+        const { name, description } = route.params.location;
+        try {
+          // Umwandlung des Ortsnamens in Koordinaten
+          const geocodeResults = await Location.geocodeAsync(name);
+          if (geocodeResults && geocodeResults.length > 0) {
+            const { latitude, longitude } = geocodeResults[0];
+            setLocationCoords({ latitude, longitude, name, description });
+          } else {
+            setErrorMsg('Ort nicht gefunden.');
+          }
+        } catch (error) {
+          setErrorMsg('Fehler beim Abrufen der Koordinaten.');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Falls kein Ort übergeben wurde, kann ein Standardwert verwendet werden
+        setLoading(false);
+      }
+    };
 
-  // Konfiguriere den Header (Login-/Logout-Icon)
-  useEffect(() => {
-    navigation.setOptions({
-      title: 'Map',
-      headerRight: () => (
-        <TouchableOpacity onPress={handleAuthPress} style={{ marginRight: 15 }}>
-          <Icon name={isLoggedIn ? 'sign-out' : 'sign-in'} size={22} color="#007bff" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, isLoggedIn]);
+    getCoordinates();
+  }, [route.params]);
 
-  // Login-/Logout-Funktion
-  const handleAuthPress = async () => {
-    if (isLoggedIn) {
-      await AsyncStorage.removeItem('userToken');
-      setIsLoggedIn(false);
-      navigation.replace('Login');
-    } else {
-      navigation.replace('Login');
-    }
-  };
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
 
-  // Ermittele die Region: Falls eine Location übergeben wurde, Geocoding ausführen;
-  // ansonsten Standardregion anzeigen.
-  useEffect(() => {
-    if (location) {
-      Geocoder.from(location.name)
-        .then(response => {
-          const { lat, lng } = response.results[0].geometry.location;
-          setRegion({
-            latitude: lat,
-            longitude: lng,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          });
-        })
-        .catch(error => {
-          console.warn('Geocoding Error:', error);
-          // Bei Fehler Standardregion verwenden
-          setRegion({
-            latitude: 37.78825,
-            longitude: -122.4324,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          });
-        })
-        .finally(() => setLoading(false));
-    } else {
-      // Keine Location übergeben → Standardregion anzeigen
-      setRegion({
-        latitude: 37.78825,
-        longitude: -122.4324,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
-      setLoading(false);
-    }
-  }, [location]);
+  if (errorMsg) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>{errorMsg}</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <MapView style={styles.map} region={region}>
-          {region && (
-            <Marker
-              coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-              title={location ? location.name : 'Default Location'}
-              description={location ? location.description : 'No Description'}
-            />
-          )}
-        </MapView>
-      )}
-    </View>
+    <MapViewComponent
+      location={
+        locationCoords || {
+          latitude: 37.78825,
+          longitude: -122.4324,
+          name: 'Default Location',
+          description: '',
+        }
+      }
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { flex: 1 },
-});
 
 export default MapScreen;

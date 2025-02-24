@@ -130,7 +130,7 @@ const CountrySearchScreen = ({ navigation }) => {
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Suche nach Land oder Hauptstadt..."
+        placeholder="Search by country or capital city..."
         placeholderTextColor="#888"
         value={searchQuery}
         onChangeText={handleSearch}
@@ -157,7 +157,7 @@ const CountrySearchScreen = ({ navigation }) => {
         />
       )}
 
-      <Text style={styles.sectionTitle}>Meine Länder</Text>
+      <Text style={styles.sectionTitle}>My countries</Text>
       <FlatList
         data={savedCountries}
         keyExtractor={(item) => item.id}
