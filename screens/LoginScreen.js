@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, 
+  View, Text, TextInput, TouchableOpacity, Alert, 
   ActivityIndicator, KeyboardAvoidingView, Platform 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebase/config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import styles from '../styles/LoginScreenStyles'; // Import der separaten Styles
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -59,44 +60,5 @@ const LoginScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 12,
-    backgroundColor: '#f9f9f9',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default LoginScreen;
