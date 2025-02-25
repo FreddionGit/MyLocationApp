@@ -6,23 +6,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/CountrySearchScreenStyles'; // Import der Styles
-
+import styles from '../styles/CountrySearchScreenStyles'; 
 const CountrySearchScreen = ({ navigation }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [savedCountries, setSavedCountries] = useState([]); // Gespeicherte Länder des Benutzers
+  const [savedCountries, setSavedCountries] = useState([]);
 
-  // Prüft den Login-Status
+  // Check the login status on component mount by retrieving the user token from AsyncStorage
   useEffect(() => {
     AsyncStorage.getItem('userToken').then(token => {
-      setIsLoggedIn(!!token);
+      setIsLoggedIn(!!token); 
     });
   }, []);
 
-  // Setzt das Icon in der Header-Leiste
   useEffect(() => {
     navigation.setOptions({
       title: 'Countries',
@@ -34,9 +32,9 @@ const CountrySearchScreen = ({ navigation }) => {
     });
   }, [navigation, isLoggedIn]);
 
-  // Login-/Logout-Funktion
+  // Function to handle login/logout when the auth icon is pressed
   const handleAuthPress = async () => {
-    if (isLoggedIn) {
+    if (isLoggedIn) { 
       await AsyncStorage.removeItem('userToken');
       setIsLoggedIn(false);
       navigation.replace('Login');
@@ -45,22 +43,22 @@ const CountrySearchScreen = ({ navigation }) => {
     }
   };
 
-  // Lädt die gespeicherten Länder aus Firestore
+  // Fetch the saved countries for the current user from Firestore
   const fetchSavedCountries = async () => {
     const user = auth.currentUser;
-    if (!user) return;
-
+    if (!user) return; 
     const q = query(collection(db, 'userCountries'), where('userId', '==', user.uid));
     const snapshot = await getDocs(q);
     const saved = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setSavedCountries(saved);
   };
 
+  // Load saved countries on component mount
   useEffect(() => {
     fetchSavedCountries();
   }, []);
 
-  // API-Abfrage für Länderinformationen
+  // Fetch country information from the API based on the search query
   const fetchCountries = async (queryText) => {
     if (!queryText.trim()) {
       setCountries([]);
@@ -68,6 +66,7 @@ const CountrySearchScreen = ({ navigation }) => {
     }
     setLoading(true);
     try {
+      // Fetch all countries from the API
       const response = await fetch(`https://restcountries.com/v3.1/all`);
       const data = await response.json();
       const filtered = data.filter(country => 
@@ -76,54 +75,64 @@ const CountrySearchScreen = ({ navigation }) => {
       );
       setCountries(filtered);
     } catch (error) {
-      console.error('API Fehler:', error);
+      console.error('API error:', error);
     }
     setLoading(false);
   };
 
-  // Suchfeld aktualisieren und API-Abfrage auslösen
+  // Update the search query state and trigger the API call to fetch countries
   const handleSearch = (queryText) => {
     setSearchQuery(queryText);
     fetchCountries(queryText);
   };
 
-  // Fügt ein Land zur eigenen Liste in Firestore hinzu
+  // Add a selected country to the user's saved list in Firestore
   const addCountryToList = async (country) => {
     const user = auth.currentUser;
     if (!user) {
-      Alert.alert('Fehler', 'Bitte logge dich ein, um Länder zu speichern.');
+      Alert.alert('Error', 'Please log in to save countries.');
       return;
     }
 
-    // Überprüfen, ob das Land bereits gespeichert wurde
+    // Check if the country has already been saved to avoid duplicates
     if (savedCountries.some(saved => saved.name === country.name.common)) {
-      Alert.alert('Info', 'Dieses Land wurde bereits hinzugefügt.');
+      Alert.alert('Info', 'This country has already been added.');
       return;
     }
 
     try {
+      // Add the country data to the 'userCountries' collection in Firestore
       const docRef = await addDoc(collection(db, 'userCountries'), {
         userId: user.uid,
         name: country.name.common,
-        capital: country.capital ? country.capital[0] : 'Keine Hauptstadt',
+        capital: country.capital ? country.capital[0] : 'No capital',
         flag: country.flags.png,
       });
 
-      setSavedCountries([...savedCountries, { id: docRef.id, name: country.name.common, capital: country.capital ? country.capital[0] : 'Keine Hauptstadt', flag: country.flags.png }]);
-      Alert.alert('Erfolg', `${country.name.common} wurde gespeichert.`);
+      // Update the local state to include the newly saved country
+      setSavedCountries([
+        ...savedCountries, 
+        { 
+          id: docRef.id, 
+          name: country.name.common, 
+          capital: country.capital ? country.capital[0] : 'No capital', 
+          flag: country.flags.png 
+        }
+      ]);
+      Alert.alert('Success', `${country.name.common} has been saved.`);
     } catch (error) {
-      console.error('Fehler beim Speichern:', error);
+      console.error('Error saving country:', error);
     }
   };
 
-  // Entfernt ein Land aus der gespeicherten Liste & Firestore
+  // Remove a country from the saved list and delete it from Firestore
   const removeCountry = async (countryId) => {
     try {
       await deleteDoc(doc(db, 'userCountries', countryId));
       setSavedCountries(savedCountries.filter(country => country.id !== countryId));
-      Alert.alert('Info', 'Das Land wurde entfernt.');
+      Alert.alert('Info', 'The country has been removed.');
     } catch (error) {
-      console.error('Fehler beim Löschen:', error);
+      console.error('Error deleting country:', error);
     }
   };
 
@@ -148,7 +157,7 @@ const CountrySearchScreen = ({ navigation }) => {
               <Image source={{ uri: item.flags.png }} style={styles.flag} />
               <View style={styles.countryInfo}>
                 <Text style={styles.countryName}>{item.name.common}</Text>
-                <Text style={styles.capital}>{item.capital ? item.capital[0] : 'Keine Hauptstadt'}</Text>
+                <Text style={styles.capital}>{item.capital ? item.capital[0] : 'No capital'}</Text>
               </View>
               <TouchableOpacity onPress={() => addCountryToList(item)}>
                 <Icon name="plus-circle" size={25} color="#28a745" />
@@ -158,6 +167,7 @@ const CountrySearchScreen = ({ navigation }) => {
         />
       )}
 
+      {/* Title for the section displaying the user's saved countries */}
       <Text style={styles.sectionTitle}>My countries</Text>
       <FlatList
         data={savedCountries}

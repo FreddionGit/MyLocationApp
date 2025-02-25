@@ -1,10 +1,11 @@
-// App.js
 import { useEffect, useState } from 'react';
 import * as Font from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
 import StackNavigator from './navigation/StackNavigator';
 
+// Main App component
 export default function App() {
+  // State to track whether the custom fonts have been loaded
   const [fontLoaded, setFontLoaded] = useState(false);
 
   useEffect(() => {
@@ -17,6 +18,7 @@ export default function App() {
     loadFonts();
   }, []);
 
+  // While fonts are loading, show a loading indicator
   if (!fontLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -25,5 +27,6 @@ export default function App() {
     );
   }
 
+  // Once fonts are loaded, render the main navigation container
   return <StackNavigator />;
 }

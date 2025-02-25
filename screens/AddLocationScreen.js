@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, Alert, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback 
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Alert, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
 import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/AddLocationScreenStyles'; // Import der separaten Styles
+import styles from '../styles/AddLocationScreenStyles'; 
 
 const AddLocationScreen = ({ navigation }) => {
+  // State for location details: name, description, and rating
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [rating, setRating] = useState(3); // Default rating set to 3
+  const [rating, setRating] = useState(3); 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Prüft den Login-Status und setzt das Icon in der Header-Leiste
   useEffect(() => {
     AsyncStorage.getItem('userToken').then(token => {
       setIsLoggedIn(!!token);
@@ -32,17 +30,17 @@ const AddLocationScreen = ({ navigation }) => {
     });
   }, [navigation, isLoggedIn]);
 
-  // Funktion für Login/Logout
   const handleAuthPress = async () => {
     if (isLoggedIn) {
-      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userToken'); 
       setIsLoggedIn(false);
-      navigation.replace('Login');
+      navigation.replace('Login'); 
     } else {
       navigation.replace('Login');
     }
   };
 
+  // Function to add a new location to Firestore
   const handleAddLocation = async () => {
     if (!name || !description) {
       Alert.alert('Error', 'Please fill in all fields!');
@@ -61,14 +59,15 @@ const AddLocationScreen = ({ navigation }) => {
       Alert.alert('Success', 'Location has been saved!');
       setName('');
       setDescription('');
-      setRating(3); // Reset rating after saving
-      Keyboard.dismiss(); // Tastatur schließen
+      setRating(3); 
+      Keyboard.dismiss(); 
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
 
   return (
+    // Dismiss the keyboard when tapping outside the input fields
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

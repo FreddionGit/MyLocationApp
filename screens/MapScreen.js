@@ -1,33 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import * as Location from 'expo-location';
-import MapViewComponent from '../components/MapViewComponent'; // Pfad ggf. anpassen
+import MapViewComponent from '../components/MapViewComponent'; 
 
 const MapScreen = ({ route }) => {
+  // State to hold location coordinates, loading status, and any error messages
   const [locationCoords, setLocationCoords] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
 
   useEffect(() => {
+    // Fetch coordinates based on the provided location name from route parameters
     const getCoordinates = async () => {
       if (route.params && route.params.location) {
         const { name, description } = route.params.location;
         try {
-          // Umwandlung des Ortsnamens in Koordinaten
+          // Convert the location name to geographic coordinates
           const geocodeResults = await Location.geocodeAsync(name);
           if (geocodeResults && geocodeResults.length > 0) {
             const { latitude, longitude } = geocodeResults[0];
             setLocationCoords({ latitude, longitude, name, description });
           } else {
-            setErrorMsg('Ort nicht gefunden.');
+            setErrorMsg('Location not found.');
           }
         } catch (error) {
-          setErrorMsg('Fehler beim Abrufen der Koordinaten.');
+          setErrorMsg('Error retrieving coordinates.');
         } finally {
           setLoading(false);
         }
       } else {
-        // Falls kein Ort übergeben wurde, kann ein Standardwert verwendet werden
+        // No location provided, so loading is complete and default values will be used
         setLoading(false);
       }
     };
@@ -51,6 +53,7 @@ const MapScreen = ({ route }) => {
     );
   }
 
+  // Render the map component using either fetched coordinates or default values
   return (
     <MapViewComponent
       location={

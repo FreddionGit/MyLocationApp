@@ -4,20 +4,20 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import styles from '../styles/LocationListScreenStyles'; // Import der Styles
+import styles from '../styles/LocationListScreenStyles'; 
 
 const LocationListScreen = ({ navigation }) => {
   const [locations, setLocations] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Prüft den Login-Status
+  // Check login status on component mount by retrieving the user token from AsyncStorage
   useEffect(() => {
     AsyncStorage.getItem('userToken').then(token => {
-      setIsLoggedIn(!!token);
+      setIsLoggedIn(!!token); 
     });
   }, []);
 
-  // Setzt das Icon in der Header-Leiste
+  // Set header options, including the title and authentication icon, in the navigation bar
   useEffect(() => {
     navigation.setOptions({
       title: 'My Locations',
@@ -29,7 +29,7 @@ const LocationListScreen = ({ navigation }) => {
     });
   }, [navigation, isLoggedIn]);
 
-  // Login-/Logout-Funktion
+  // Function to handle login/logout when the auth icon is pressed
   const handleAuthPress = async () => {
     if (isLoggedIn) {
       await AsyncStorage.removeItem('userToken');
@@ -40,12 +40,14 @@ const LocationListScreen = ({ navigation }) => {
     }
   };
 
+  // Listen for real-time updates in the 'locations' collection for the current user
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) {
-      console.log("Kein Nutzer eingeloggt.");
+      console.log("No user is logged in.");
       return;
     }
+    // Create a query to fetch locations where the 'userId' field matches the current user's UID
     const q = query(collection(db, 'locations'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const locationsData = snapshot.docs.map(doc => ({
@@ -59,13 +61,15 @@ const LocationListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Show a message if no locations have been added */}
       {locations.length === 0 && <Text style={styles.noLocations}>No locations added yet.</Text>}
       <FlatList
-        data={locations}
-        keyExtractor={item => item.id}
+        data={locations} 
+        keyExtractor={item => item.id} 
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.item} 
+            // Navigate to the Map screen and pass the selected location as a parameter
             onPress={() => navigation.navigate('Map', { location: item })}
           >
             <View style={styles.itemContent}>

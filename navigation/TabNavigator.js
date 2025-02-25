@@ -1,4 +1,3 @@
-// TabNavigator.js
 import React from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -15,8 +14,10 @@ const TabNavigator = () => {
     <SafeAreaView style={styles.safeArea}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
+          // Define the icon for each tab based on its route name
           tabBarIcon: ({ color, size }) => {
             let iconName;
+            // Set the icon name based on the route name
             if (route.name === 'Locations') {
               iconName = 'list';
             } else if (route.name === 'Add Location') {
@@ -28,19 +29,21 @@ const TabNavigator = () => {
             }
             return <Icon name={iconName} size={size} color={color} />;
           },
+         
           tabBarActiveTintColor: '#007bff',
           tabBarInactiveTintColor: 'gray',
           tabBarShowLabel: true,
           tabBarStyle: {
-            backgroundColor: '#fff',
-            borderTopWidth: 1,
-            borderTopColor: '#ddd',
-            height: 65, // Höhe leicht vergrößert für bessere Platzierung
-            paddingBottom: 10, // Etwas Abstand vom unteren Rand
-            paddingTop: 8, // Icons nach oben rücken
+            backgroundColor: '#fff', 
+            borderTopWidth: 1,       
+            borderTopColor: '#ddd',  
+            height: 65,              
+            paddingBottom: 10,       
+            paddingTop: 8,         
           },
         })}
       >
+    
         <Tab.Screen name="Locations" component={LocationListScreen} />
         <Tab.Screen name="Add Location" component={AddLocationScreen} />
         <Tab.Screen name="Map" component={MapScreen} />
@@ -50,9 +53,10 @@ const TabNavigator = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
+    flex: 1,               
     backgroundColor: '#fff',
   },
 });
